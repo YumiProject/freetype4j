@@ -28,3 +28,8 @@ jobs:
         with:
           name: Artifacts_j${{ matrix.java }}_with_${{ matrix.java_distribution }}
           path: ./build/libs/
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test_reports_j${{ matrix.java }}_with_${{ matrix.java_distribution }}
+          path: ./build/reports/tests/
