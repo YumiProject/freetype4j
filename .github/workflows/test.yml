@@ -1,0 +1,30 @@
+name: "Test"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java: [23]
+        java_distribution: ["temurin", "oracle", "zulu", "corretto"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Set up Java"
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ matrix.java_distribution }}
+          java-version: ${{ matrix.java }}
+      - name: "Set up Gradle"
+        uses: gradle/actions/setup-gradle@v3
+      - name: "Gradle Build and Test"
+        run: ./gradlew build check --stacktrace --parallel
+      - name: "Upload artifacts"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts_j${{ matrix.java }}_with_${{ matrix.java_distribution }}
+          path: ./build/libs/
