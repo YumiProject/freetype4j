@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         java: [23]
-        java_distribution: ["temurin", "oracle", "zulu", "corretto"]
+        java_distribution: ["temurin", "zulu", "corretto"] # Re-add Oracle once better library loading is implemented.
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"

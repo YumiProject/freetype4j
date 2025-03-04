@@ -8,13 +8,45 @@
 
 package dev.yumi.bindings.freetype4j;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.Linker;
-import java.lang.foreign.SymbolLookup;
-import java.lang.foreign.ValueLayout;
+import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 
 class FreeTypeNative {
+	static final AddressLayout C_POINTER = ValueLayout.ADDRESS
+			.withTargetLayout(MemoryLayout.sequenceLayout(Long.MAX_VALUE, ValueLayout.JAVA_BYTE));
+	static final MemoryLayout FT_GENERIC = MemoryLayout.structLayout(
+			C_POINTER.withName("data"),
+			C_POINTER.withName("finalizer")
+	);
+	static final MemoryLayout FT_FACE_LAYOUT = MemoryLayout.structLayout(
+			ValueLayout.JAVA_LONG.withName("num_faces"),
+			ValueLayout.JAVA_LONG.withName("face_index"),
+			ValueLayout.JAVA_LONG.withName("face_flags"),
+			ValueLayout.JAVA_LONG.withName("style_flags"),
+			ValueLayout.JAVA_LONG.withName("num_glyphs"),
+			C_POINTER.withName("family_name"),
+			C_POINTER.withName("style_name"),
+			ValueLayout.JAVA_INT.withName("num_fixed_sizes"),
+			MemoryLayout.paddingLayout(4),
+			C_POINTER.withName("available_sizes"),
+			ValueLayout.JAVA_INT.withName("num_charmaps"),
+			MemoryLayout.paddingLayout(4),
+			C_POINTER.withName("charmaps"),
+			FT_GENERIC.withName("generic"),
+			FTBBox.LAYOUT.withName("bbox"),
+			ValueLayout.JAVA_SHORT.withName("units_per_EM"),
+			ValueLayout.JAVA_SHORT.withName("ascender"),
+			ValueLayout.JAVA_SHORT.withName("descender"),
+			ValueLayout.JAVA_SHORT.withName("height"),
+			ValueLayout.JAVA_SHORT.withName("max_advance_width"),
+			ValueLayout.JAVA_SHORT.withName("max_advance_height"),
+			ValueLayout.JAVA_SHORT.withName("underline_position"),
+			ValueLayout.JAVA_SHORT.withName("underline_thickness"),
+			C_POINTER.withName("glyph"),
+			C_POINTER.withName("size"),
+			C_POINTER.withName("charmap")
+	);
+
 	private static FreeTypeNative instance;
 
 	static FreeTypeNative get() {
@@ -42,6 +74,7 @@ class FreeTypeNative {
 	final MethodHandle ft$SetCharSize;
 	final MethodHandle ft$setPixelSizes;
 	final MethodHandle ft$SelectCharmap;
+	final MethodHandle ft$SetCharmap;
 
 	FreeTypeNative(SymbolLookup lookup) {
 		var loader = new Loader(lookup);
@@ -95,6 +128,9 @@ class FreeTypeNative {
 		);
 		this.ft$SelectCharmap = loader.lookup("FT_Select_Charmap",
 				FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_INT)
+		);
+		this.ft$SetCharmap = loader.lookup("FT_Set_Charmap",
+				FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.ADDRESS)
 		);
 	}
 

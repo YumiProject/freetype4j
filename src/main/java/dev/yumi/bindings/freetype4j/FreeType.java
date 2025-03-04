@@ -11,10 +11,12 @@ package dev.yumi.bindings.freetype4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
-import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -79,6 +81,26 @@ public class FreeType implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Creates a face object from a given resource path.
+	 *
+	 * @param fontPath the path to the font file
+	 * @param faceIndex the face index, which holds two different values.
+	 * From bits 0-15 are the index of the face in the font file (starting with value {@code 0}).
+	 * Set it to {@code 0} if there is only one face in the font file.
+	 * <p>
+	 * Since FreeType 2.6.1, bits 16-30 are relevant to GX and OpenType variation fonts only,
+	 * specifying the named instance index for the current face index (starting with value {@code 1},
+	 * value {@code 0} makes FreeType ignore named instances).
+	 * For non-variation fonts, bits 16-30 are ignored. Assuming that you want to access the third named instance
+	 * in face {@code 4}, {@code faceIndex} should be set to {@code 0x00030004}. If you want to access face {@code 4}
+	 * without variation handling, simply set {@code faceIndex} to value {@code 4}.
+	 *
+	 * @return the new face object
+	 * @see #newFace(Path, long)
+	 * @see #newMemoryFace(byte[], long)
+	 * @see #newMemoryFace(InputStream, long)
+	 */
 	public FTFace newFace(String fontPath, long faceIndex) {
 		this.checkCanBeUsed();
 
@@ -102,12 +124,9 @@ public class FreeType implements AutoCloseable {
 		}
 	}
 
-	public FTFace newFace(Path fontPath, long faceIndex) {
-		if (fontPath.getFileSystem() != FileSystems.getDefault()) {
-			throw new IllegalArgumentException("Path is not from the default filesystem.");
-		}
-
-		return this.newFace(fontPath.toAbsolutePath().toString(), faceIndex);
+	public FTFace newFace(Path path, long faceIndex) throws IOException {
+		var bytes = Files.readAllBytes(path);
+		return this.newMemoryFace(bytes, faceIndex);
 	}
 
 	public FTFace newMemoryFace(byte[] fontData, long faceIndex) {
@@ -133,6 +152,10 @@ public class FreeType implements AutoCloseable {
 
 			return new FTFace(ptr.get(ValueLayout.ADDRESS, 0));
 		}
+	}
+
+	public FTFace newMemoryFace(InputStream inputStream, long faceIndex) throws IOException {
+		return this.newMemoryFace(inputStream.readAllBytes(), faceIndex);
 	}
 
 	@Override

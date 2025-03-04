@@ -8,6 +8,8 @@
 
 package dev.yumi.bindings.freetype4j;
 
+import java.util.List;
+
 public enum FTEncoding {
 	MS_SYMBOL("symb"),
 	UNICODE("unic"),
@@ -23,16 +25,21 @@ public enum FTEncoding {
 	OLD_LATIN_2("lat2"),
 	APPLE_ROMAN("armn");
 
+	public static final List<FTEncoding> VALUES = List.of(values());
 	private final int id;
 
 	FTEncoding(String id) {
-		this.id = (id.charAt(0) << 24)
-				| (id.charAt(1) << 16)
-				| (id.charAt(2) << 8)
-				| id.charAt(3);
+		this.id = (id.codePointAt(0) << 24)
+				| (id.codePointAt(1) << 16)
+				| (id.codePointAt(2) << 8)
+				| id.codePointAt(3);
 	}
 
 	public int id() {
 		return this.id;
+	}
+
+	public static FTEncoding byId(int id) {
+		return VALUES.stream().filter(ft -> ft.id() == id).findFirst().orElse(null);
 	}
 }
