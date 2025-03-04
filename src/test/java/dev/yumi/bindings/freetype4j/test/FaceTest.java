@@ -9,14 +9,13 @@
 package dev.yumi.bindings.freetype4j.test;
 
 import dev.yumi.bindings.freetype4j.FreeType;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FaceTest {
 	private static final long GLYPH_COUNT = 2030;
@@ -37,6 +36,8 @@ public class FaceTest {
 			assertEquals(0, face.fixedSizesCount());
 			assertEquals(4, face.charMapCount());
 			assertEquals(1950, face.unitsPerEm());
+
+			assertEquals(138, face.getCharIndex('a'));
 		}
 	}
 
@@ -54,6 +55,8 @@ public class FaceTest {
 			assertEquals(0, face.fixedSizesCount());
 			assertEquals(4, face.charMapCount());
 			assertEquals(1950, face.unitsPerEm());
+
+			assertEquals(138, face.getCharIndex('a'));
 		}
 	}
 }

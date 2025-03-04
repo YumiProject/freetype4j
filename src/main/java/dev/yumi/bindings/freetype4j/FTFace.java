@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
@@ -23,7 +24,7 @@ public class FTFace implements AutoCloseable {
 	private final MemorySegment handle;
 	private final FTBBox bbox;
 
-	FTFace(MemorySegment handle) {
+	public FTFace(MemorySegment handle) {
 		this.handle = handle.reinterpret(FreeTypeNative.FT_FACE_LAYOUT.byteSize());
 
 		long bboxOffset = FreeTypeNative.FT_FACE_LAYOUT.byteOffset(MemoryLayout.PathElement.groupElement("bbox"));
@@ -204,6 +205,23 @@ public class FTFace implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Gets the glyph index of a given character code.
+	 * This function uses the currently selected charmap to do the mapping.
+	 *
+	 * @param codePoint the character code
+	 * @return the glyph index. {@code 0} means "undefined character code"
+	 */
+	public int getCharIndex(long codePoint) {
+		try {
+			return (int) FreeTypeNative.get().ft$GetCharIndex.invokeExact(
+					this.handle, codePoint
+			);
+		} catch (Throwable e) {
+			throw new AssertionError(e);
+		}
+	}
+
 	@Override
 	public void close() {
 		int result;
@@ -216,6 +234,21 @@ public class FTFace implements AutoCloseable {
 
 		if (result != 0) {
 			throw new FreeTypeException(result, FreeType.getErrorString(result));
+		}
+	}
+
+	static class FromMemory extends FTFace {
+		private final Arena arena;
+
+		public FromMemory(Arena arena, MemorySegment handle) {
+			super(handle);
+			this.arena = arena;
+		}
+
+		@Override
+		public void close() {
+			super.close();
+			this.arena.close();
 		}
 	}
 }

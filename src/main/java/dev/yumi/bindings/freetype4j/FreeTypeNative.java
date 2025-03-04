@@ -73,8 +73,11 @@ class FreeTypeNative {
 	final MethodHandle ft$DoneFace;
 	final MethodHandle ft$SetCharSize;
 	final MethodHandle ft$setPixelSizes;
+
+	/* Character Mapping */
 	final MethodHandle ft$SelectCharmap;
 	final MethodHandle ft$SetCharmap;
+	final MethodHandle ft$GetCharIndex;
 
 	FreeTypeNative(SymbolLookup lookup) {
 		var loader = new Loader(lookup);
@@ -126,11 +129,15 @@ class FreeTypeNative {
 						ValueLayout.JAVA_INT, ValueLayout.JAVA_INT
 				)
 		);
+
 		this.ft$SelectCharmap = loader.lookup("FT_Select_Charmap",
 				FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_INT)
 		);
 		this.ft$SetCharmap = loader.lookup("FT_Set_Charmap",
 				FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.ADDRESS)
+		);
+		this.ft$GetCharIndex = loader.lookup("FT_Get_Char_Index",
+				FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG)
 		);
 	}
 

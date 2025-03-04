@@ -132,14 +132,16 @@ public class FreeType implements AutoCloseable {
 	public FTFace newMemoryFace(byte[] fontData, long faceIndex) {
 		this.checkCanBeUsed();
 
-		try (var arena = Arena.ofConfined()) {
-			var ptr = arena.allocate(ValueLayout.ADDRESS);
+		var faceArena = Arena.ofShared();
+
+		try (var localArena = Arena.ofConfined()) {
+			var ptr = localArena.allocate(ValueLayout.ADDRESS);
 			int result;
 
 			try {
 				result = (int) FreeTypeNative.get().ft$NewMemoryFace.invokeExact(
 						this.handle,
-						arena.allocateFrom(ValueLayout.JAVA_BYTE, fontData), (long) fontData.length,
+						faceArena.allocateFrom(ValueLayout.JAVA_BYTE, fontData), (long) fontData.length,
 						faceIndex, ptr
 				);
 			} catch (Throwable e) {
@@ -150,7 +152,7 @@ public class FreeType implements AutoCloseable {
 				throw new FreeTypeException(result, getErrorString(result));
 			}
 
-			return new FTFace(ptr.get(ValueLayout.ADDRESS, 0));
+			return new FTFace.FromMemory(faceArena, ptr.get(ValueLayout.ADDRESS, 0));
 		}
 	}
 
